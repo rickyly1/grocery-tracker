@@ -1,5 +1,4 @@
-// HTTP Section
-/*
+// HTTP section setup
 const http = require('http');
 
 const {createLogger, transports, format} = require('winston');
@@ -14,165 +13,110 @@ const logger = createLogger({
     ),
     transports: [
         new transports.Console(), // log to the console
-        new transports.File({filename: 'app.log'}), // log to a file
+        new transports.File({filename: 'grocery-tracker.log'}), // log to a file
     ],
 });
 
 const PORT = 3000;
-*/
 
-// JSON manipulation
+// JSON manipulation setup
 const fs = require('fs');
+var groceryList = [];
+if (fs.existsSync('data.json')) {
+    let rawGroceryList = fs.readFileSync('data.json', 'utf8'); // reads string from json file
+    if (rawGroceryList.trim().length == 0) {
+        groceryList = []; // creates an array if the JSON file is empty/ incorrectly formatted
+    } else {
+        groceryList = JSON.parse(rawGroceryList); // convert JSON string to array
+    }
+} 
 
-const groceryList = JSON.parse(fs.readFileSync('data.json', 'utf8')); // reads array from json file
+const server = http.createServer((req, res) => {
+    logger.info(`[${req.method} ${req.url}]`);
 
-// Import the readline module for handling user input in the console
-const readline = require('readline');
-const rl = readline.createInterface({
-  input: process.stdin, // Read from standard input (keyboard)
-  output: process.stdout // Write to standard output (console)
-});
+    res.setHeader('Content-Type', 'application/json');
 
-rl.on('line', (line) => {
-    let command = line.toLowerCase();
-
-    switch (command) {
-        case 'display':
-            if (groceryList.length == 0) {
-                console.log('Your grocery list is empty');
-                break;
-            }
-
-            for (const item of groceryList) {
-                console.log(`Item: ${item.name}, Quantity: ${item.quantity}, Price:, ${item.price}, Bought: ${item.bought}`);
-            }
+    let body = '';
+    switch(req.method) {
+        case 'GET':
+            res.statusCode = 200;
+            res.end(JSON.stringify(groceryList));
             break;
 
-        case 'add':
-            addItem()
-            break;
-
-        case 'remove':
-            rl.question('What item should be removed from your list?\n', (name) => {
-                let itemToRemove = name.toLowerCase();
-
-                // iterate thru item array until match is found, remove item and exit switch
-                for (const item of groceryList) {
-                    if (item.name == itemToRemove) {
-                        groceryList.splice(groceryList.indexOf(item), 1);
-                        console.log(`\"${name}\" has been successfully removed from your list`);
-                        break;
-
-                    } else if (groceryList.indexOf(item) == (groceryList.length - 1)) {
-                        console.log("This item is not on your grocery list");
-                    }
-                }
+        case 'POST':
+            body = '';
+            req.on('data', (chunk) => {
+                body += chunk;
             });
-
+            req.on('end', () => {
+                let parsedBody = JSON.parse(body);
+                
+                if (!parseInt(groceryList.quantity) && !parseFloat(groceryList.price) && !isBoolean(groceryList.bought)) {
+                    groceryList.push(parsedBody);
+                    updateJSON();
+                    logger.info(`Request body: ${body}, successful`);
+                    res.statusCode = 201;
+                    res.end(JSON.stringify({message: "POST request handled"}));
+                } else {
+                    logger.info(`Request body: ${body}, failed`);
+                    res.statusCode = 400;
+                    res.end(JSON.stringify({message: "POST request failed"}));
+                }
+                
+            });
             break;
 
-        case 'buy':
-            rl.question('Which item\'s status should be changed?\n', (name) => {
-                let itemToChange = name.toLowerCase();
+        case 'PUT':
+            body = '';
+            req.on('data', (chunk) => {
+                body += chunk;
+            });
+            req.on('end', () => {
+                
+                let parsedBody = JSON.parse(body);
 
-                // iterate thru item array until match is found, change property and exit switch
                 for (const item of groceryList) {
-                    if (item.name == itemToChange) {
+                    if (item.name == parsedBody) {
                         item.bought = !item.bought;
-                        console.log(`\"${name}\" bought status was changed to ${item.bought}`);
+                        logger.info(`Request body: ${body}, successful`);
+                        res.statusCode = 200; 
+                        res.end(JSON.stringify({message: "PUT request handled"}));
                         break;
 
-                    } else if (groceryList.indexOf(item) == (groceryList.length - 1)) {
-                        console.log("This item is not on your grocery list");
+                    } else if (groceryList.indexOf(item) == groceryList.length - 1) {
+                        logger.info(`Request body: ${body}, failed`);
+                        res.statusCode = 400; 
+                        res.end(JSON.stringify({message: "PUT request failed"}));
                     }
                 }
+                
             });
-
             break;
 
-        case 'exit':
-            rl.close();
-            break
+        case 'DELETE':
+            res.statusCode = 200;
+            groceryList.pop()
+            updateJSON();
+            res.end(JSON.stringify({message: "DELETE request handled"}))
+            break;
 
         default:
-            console.log('Type \"help\" to see all commands again');
+            res.statusCode = 405;
+            res.end(JSON.stringify({message: "Method not supported"}))
             break;
     }
+})
 
-    //console.log('Type \"help\" to see all possible commands again');
+server.listen(PORT, () => {
+    logger.info(`Server is running on http://localhost:${PORT}`)
 });
 
-rl.once('close', () => {
-     // end of input
-     console.log("Goodbye");
-});
-
-console.log('\nWelcome to the Grocery Tracker\n');
-displayCommands();
-
-function displayCommands() {
-    console.log('display : shows all items currently in your grocery list');
-    console.log('add : add an item to your list, including name, quantity, price, and bought status');
-    console.log('remove : remove an item from your list by name');
-    console.log('buy : change if an item has been bought or not');
-    console.log('Type \"exit\" to close\n');
-};
-
-function addItem() {
-    rl.question('What is the item name?\n', (name) => {
-        item.name = name.toLowerCase();
-        askQuantity();
-    });
-}
-
-function askQuantity() {
-    rl.question('How many are you adding?\n', (quantity) => {
-        if(parseInt(quantity) == false || quantity <= 0 || isNaN(quantity)) {
-            //!parseInt(quatity)
-            console.log('Not a valid quantity, input a new one');
-            askQuantity();
-        }
-        item.quantity = quantity;
-        askPrice();
-        return;
-    })
-}
-
-function askPrice() {
-    rl.question('What is the price?\n', (price) => {
-        if(parseFloat(price) == false || price <= 0 || isNaN(price)) {
-            console.log('Not a valid price, input a new one');
-            askPrice();
-        }
-        item.price = price;
-        askBought();
-        return;
-    });
-}
-
-function askBought() {
-    rl.question('Has the item been bought already? (true/false)\n', (bought) => {
-        if(bought == 'true' || bought == 'false') {
-            item.bought = bought;
-            groceryList.push(item);
-            console.log(`\"${item.name}\" has been added to your grocery list`);
+function updateJSON() {
+    fs.writeFileSync("data.json", JSON.stringify(groceryList), 'utf8', (err) => {
+        if(err) {
+            console.error(err);
             return;
         }
-
-        console.log('Not a valid answer, input true or false');
-        askBought();
-    });
+        console.log("JSON data updated")
+    })
 }
-
-// grocery list with some default values
-const groceryList = [{name: 'cereal', quantity: 6, price: 5.99, bought: true}, 
-    {name: 'steak', quantity: 2, price: 13.99, bought: false},
-    {name: 'milk', quantity: 2, price: 2.99, bought: false}];
-
-// default item holder
-const item = {
-    name: '',
-    quantity: 0,
-    price: 0,
-    bought: false,
-};

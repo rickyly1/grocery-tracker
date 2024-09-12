@@ -1,0 +1,68 @@
+2024-09-12T17:29:24.173Z [info]: Server is running on http://localhost:3000
+2024-09-12T17:30:28.465Z [info]: Server is running on http://localhost:3000
+2024-09-12T17:36:23.862Z [info]: [GET /]
+2024-09-12T17:36:30.046Z [info]: [POST /]
+2024-09-12T17:36:30.048Z [info]: Request body: 
+2024-09-12T17:36:30.049Z [info]: Request body: 
+2024-09-12T17:37:28.260Z [info]: [PUT /]
+2024-09-12T17:37:28.261Z [info]: Request body: 
+2024-09-12T17:37:34.248Z [info]: [DELETE /]
+2024-09-12T17:39:52.550Z [info]: [POST /?name=lettuce&quantity=3&price=3&bought=false]
+2024-09-12T17:39:52.551Z [info]: Request body: 
+2024-09-12T17:39:52.552Z [info]: Request body: 
+2024-09-12T17:40:21.709Z [info]: Server is running on http://localhost:3000
+2024-09-12T17:40:24.541Z [info]: [POST /?name=lettuce&quantity=3&price=3&bought=false]
+2024-09-12T17:40:24.543Z [info]: Request body: 
+2024-09-12T17:44:54.066Z [info]: [POST /?name=lettuce&quantity=3&price=3&bought=false]
+2024-09-12T17:44:54.067Z [info]: Request body: {
+    name: 'lettuce',
+    quantity: 3,
+    price: 3,
+    bought: false,
+}
+2024-09-12T17:46:10.599Z [info]: [DELETE /?name=lettuce&quantity=3&price=3&bought=false]
+2024-09-12T17:46:24.024Z [info]: [DELETE /?name=lettuce&quantity=3&price=3&bought=false]
+2024-09-12T17:46:24.763Z [info]: [DELETE /?name=lettuce&quantity=3&price=3&bought=false]
+2024-09-12T17:46:38.573Z [info]: Server is running on http://localhost:3000
+2024-09-12T17:46:47.296Z [info]: [POST /?name=lettuce&quantity=3&price=3&bought=false]
+2024-09-12T17:48:04.384Z [info]: Server is running on http://localhost:3000
+2024-09-12T17:48:08.454Z [info]: [POST /?name=lettuce&quantity=3&price=3&bought=false]
+2024-09-12T17:48:56.789Z [info]: Server is running on http://localhost:3000
+2024-09-12T17:48:58.759Z [info]: [POST /?name=lettuce&quantity=3&price=3&bought=false]
+2024-09-12T17:48:58.760Z [info]: Request body: {
+    name: 'lettuce',
+    quantity: 3,
+    price: 3,
+    bought: false,
+}
+2024-09-12T17:49:27.478Z [info]: Server is running on http://localhost:3000
+2024-09-12T17:49:29.460Z [info]: [POST /?name=lettuce&quantity=3&price=3&bought=false]
+2024-09-12T17:49:29.461Z [info]: Request body: {
+    name: 'lettuce',
+    quantity: 3,
+    price: 3,
+    bought: false,
+}
+2024-09-12T17:51:25.466Z [info]: [POST /?name=lettuce&quantity=3&price=3&bought=false]
+2024-09-12T17:51:25.467Z [info]: Request body: {
+    "name": "lettuce",
+    "quantity": 3,
+    "price": 3,
+    "bought": false
+}
+2024-09-12T17:51:52.526Z [info]: [POST /?name=lettuce&quantity=3&price=3&bought=false]
+2024-09-12T17:51:52.527Z [info]: Request body: {"name": "lettuce","quantity": 3,"price": 3,"bought": false}
+2024-09-12T17:52:32.921Z [info]: Server is running on http://localhost:3000
+2024-09-12T17:52:34.615Z [info]: [POST /?name=lettuce&quantity=3&price=3&bought=false]
+2024-09-12T17:52:34.616Z [info]: Request body: {"name": "lettuce","quantity": 3,"price": 3,"bought": false}
+2024-09-12T18:45:06.848Z [info]: [GET /?name=lettuce&quantity=3&price=3&bought=false]
+2024-09-12T18:45:47.129Z [info]: Server is running on http://localhost:3000
+2024-09-12T18:45:51.309Z [info]: [GET /?name=lettuce&quantity=3&price=3&bought=false]
+2024-09-12T18:46:22.575Z [info]: [GET /?name=lettuce&quantity=3&price=3&bought=false]
+2024-09-12T18:46:28.140Z [info]: Server is running on http://localhost:3000
+2024-09-12T18:46:30.127Z [info]: [GET /?name=lettuce&quantity=3&price=3&bought=false]
+2024-09-12T18:55:55.085Z [info]: [POST /?name=lettuce&quantity=3&price=3&bought=false]
+2024-09-12T18:55:55.086Z [info]: Request body: {"name": "lettuce","quantity": 3,"price": 3,"bought": false}
+2024-09-12T18:56:09.936Z [info]: Server is running on http://localhost:3000
+2024-09-12T18:56:13.072Z [info]: [POST /?name=lettuce&quantity=3&price=3&bought=false]
+2024-09-12T18:56:13.073Z [info]: Request body: {"name": "lettuce","quantity": 3,"price": 3,"bought": false}
