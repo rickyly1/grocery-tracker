@@ -1,3 +1,31 @@
+// HTTP Section
+/*
+const http = require('http');
+
+const {createLogger, transports, format} = require('winston');
+
+const logger = createLogger({
+    level: 'info',
+    format: format.combine(
+        format.timestamp(),
+        format.printf(({ timestamp, level, message}) => {
+            return `${timestamp} [${level}]: ${message}`;
+        })
+    ),
+    transports: [
+        new transports.Console(), // log to the console
+        new transports.File({filename: 'app.log'}), // log to a file
+    ],
+});
+
+const PORT = 3000;
+*/
+
+// JSON manipulation
+const fs = require('fs');
+
+const groceryList = JSON.parse(fs.readFileSync('data.json', 'utf8')); // reads array from json file
+
 // Import the readline module for handling user input in the console
 const readline = require('readline');
 const rl = readline.createInterface({
@@ -21,46 +49,7 @@ rl.on('line', (line) => {
             break;
 
         case 'add':
-
             addItem()
-            /*
-            let item = {
-                name: '',
-                quantity: 0,
-                price: 0,
-                bought: false,
-            };
-
-            //let name = await rl.question('What is the item name?');
-            
-             
-                single question request causes break in switch case, nesting questions works around issue
-
-                input validation?
-            
-            rl.question('What is the item name?\n', (name) => {
-                item.name = name.toLowerCase();
-
-                rl.question('How many are you adding?\n', (quantity) => {
-                    if(parseInt(quantity) == false || quantity <= 0 || isNaN(quantity)) {
-                        console.log('Not a valid quantity, input a new one');
-                        rl.prompt();
-                    }
-                    item.quantity = quantity;
-
-                    rl.question('What is the price?\n', (price) => {
-                        item.price = price;
-
-                        rl.question('Has the item been bought already? (true/false)\n', (bought) => {
-                            item.bought = bought;
-
-                            groceryList.push(item);
-                            console.log(`\"${item.name}\" has been added to your grocery list`);
-                        });
-                    });
-                });
-            });
-            */
             break;
 
         case 'remove':
@@ -139,6 +128,7 @@ function addItem() {
 function askQuantity() {
     rl.question('How many are you adding?\n', (quantity) => {
         if(parseInt(quantity) == false || quantity <= 0 || isNaN(quantity)) {
+            //!parseInt(quatity)
             console.log('Not a valid quantity, input a new one');
             askQuantity();
         }
