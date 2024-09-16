@@ -1,8 +1,10 @@
-// HTTP section setup
 const http = require('http');
-
 const {createLogger, transports, format} = require('winston');
+const fs = require('fs');
+const path = 'data.json';
+const PORT = 3000;
 
+// Logger setup
 const logger = createLogger({
     level: 'info',
     format: format.combine(
@@ -17,87 +19,59 @@ const logger = createLogger({
     ],
 });
 
-const PORT = 3000;
-
 // JSON manipulation setup
-const fs = require('fs');
-var groceryList = [];
-if (fs.existsSync('data.json')) {
-    let rawGroceryList = fs.readFileSync('data.json', 'utf8'); // reads string from json file
-    if (rawGroceryList.trim().length == 0) {
-        groceryList = []; // creates an array if the JSON file is empty/ incorrectly formatted
-    } else {
-        groceryList = JSON.parse(rawGroceryList); // convert JSON string to array
+if (!fs.existsSync(path)) {
+    fs.writeFileSync(path, JSON.stringify([], null, 2), 'utf8'); // Create an empty file if it doesn't exist
+} else {
+    let rawGroceryList = fs.readFileSync(path, 'utf8'); // Read string from JSON file
+    if (rawGroceryList.trim() === '') {
+        fs.writeFileSync(path, JSON.stringify([], null, 2), 'utf8'); // Write an empty array if file is empty
     }
-} 
+}
 
+// HTTP method handling
 const server = http.createServer((req, res) => {
     logger.info(`[${req.method} ${req.url}]`);
-
     res.setHeader('Content-Type', 'application/json');
-
     let body = '';
+
     switch(req.method) {
         case 'GET':
-            res.statusCode = 200;
-            res.end(JSON.stringify(groceryList));
+            groceryGet(res);
             break;
 
         case 'POST':
-            body = '';
-            req.on('data', (chunk) => {
-                body += chunk;
-            });
-            req.on('end', () => {
-                let parsedBody = JSON.parse(body);
-                
-                if (!parseInt(groceryList.quantity) && !parseFloat(groceryList.price) && !isBoolean(groceryList.bought)) {
-                    groceryList.push(parsedBody);
-                    updateJSON();
-                    logger.info(`Request body: ${body}, successful`);
-                    res.statusCode = 201;
-                    res.end(JSON.stringify({message: "POST request handled"}));
-                } else {
-                    logger.info(`Request body: ${body}, failed`);
-                    res.statusCode = 400;
-                    res.end(JSON.stringify({message: "POST request failed"}));
-                }
-                
-            });
-            break;
-
         case 'PUT':
+        case 'DELETE':
             body = '';
             req.on('data', (chunk) => {
                 body += chunk;
             });
             req.on('end', () => {
-                
-                let parsedBody = JSON.parse(body);
-
-                for (const item of groceryList) {
-                    if (item.name == parsedBody) {
-                        item.bought = !item.bought;
-                        logger.info(`Request body: ${body}, successful`);
-                        res.statusCode = 200; 
-                        res.end(JSON.stringify({message: "PUT request handled"}));
-                        break;
-
-                    } else if (groceryList.indexOf(item) == groceryList.length - 1) {
-                        logger.info(`Request body: ${body}, failed`);
-                        res.statusCode = 400; 
-                        res.end(JSON.stringify({message: "PUT request failed"}));
+                try {
+                    let parsedBody = JSON.parse(body);
+                    if (req.method === 'POST') {
+                        groceryPost(parsedBody);
+                        res.statusCode = 201;
+                        res.end(JSON.stringify({ message: "POST request handled" }));
+                    } 
+                    if (req.method === 'PUT') {
+                        groceryPut(parsedBody);
+                        res.statusCode = 200;
+                        res.end(JSON.stringify({ message: "PUT request handled" }));
                     }
-                }
-                
-            });
-            break;
+                    if (req.method === 'DELETE') {
+                        groceryDelete(parsedBody);
+                        res.statusCode = 200;
+                        res.end(JSON.stringify({ message: "DELETE request handled" }));
+                    }
 
-        case 'DELETE':
-            res.statusCode = 200;
-            groceryList.pop()
-            updateJSON();
-            res.end(JSON.stringify({message: "DELETE request handled"}))
+                } catch (error) {
+                    res.statusCode = 400;
+                    res.end(JSON.stringify({ message: "Invalid JSON format" }));
+                    logger.error("Error parsing JSON: " + error.message);
+                }
+            });
             break;
 
         default:
@@ -111,12 +85,71 @@ server.listen(PORT, () => {
     logger.info(`Server is running on http://localhost:${PORT}`)
 });
 
-function updateJSON() {
-    fs.writeFileSync("data.json", JSON.stringify(groceryList), 'utf8', (err) => {
-        if(err) {
-            console.error(err);
-            return;
-        }
-        console.log("JSON data updated")
-    })
+function groceryGet() {
+    logger.info('GET request: Retrieving data from JSON');
+    return fs.readFileSync(__dirname + '\\data.json', 'utf8');
 }
+
+function groceryPost(parsedBody) {
+    logger.info(`POST request: ${JSON.stringify(parsedBody)}`);
+    const rawGroceryList = fs.readFileSync('data.json', 'utf8')
+    const groceryList = JSON.parse(rawGroceryList);
+
+    if (Number.isInteger(parsedBody.quantity) && typeof parsedBody.price == 'number' && typeof parsedBody.bought == 'boolean') {
+        groceryList.push(parsedBody);
+        fs.writeFileSync(__dirname + '\\data.json', JSON.stringify(groceryList, null, 2), 'utf8');
+        logger.info(`POST request success: ${JSON.stringify(parsedBody)}`);
+    } else {
+        logger.error('POST request failed: Invalid data format');
+        throw new Error("Invalid data format");
+    }
+}
+
+function groceryPut(parsedBody) {
+    logger.info('PUT request: Change \'bought\' status');
+    const rawGroceryList = fs.readFileSync(path, 'utf8');
+    const groceryList = JSON.parse(rawGroceryList);
+    let itemFound = false;
+
+    for (const item of groceryList) {
+        if (item.name === parsedBody) {
+            item.bought = !item.bought;
+            itemFound = true;
+            fs.writeFileSync(__dirname + '\\data.json', JSON.stringify(groceryList, null, 2), 'utf8');
+            logger.info(`Request body: ${JSON.stringify(parsedBody)}, successful`);
+            break;
+        } 
+    }
+
+    if (!itemFound) {
+        logger.info(`Request body: ${JSON.stringify(parsedBody)}, failed`);
+    }
+}
+
+function groceryDelete(parsedBody, res) {
+    logger.info('DELETE request: Removing item from grocery list');
+    const rawGroceryList = fs.readFileSync(path, 'utf8');
+    const groceryList = JSON.parse(rawGroceryList);
+    let itemFound = false;
+
+    for (let i = 0; i < groceryList.length; i++) {
+        if (groceryList[i].name === parsedBody) {
+            groceryList.splice(i, 1);
+            itemFound = true;
+            fs.writeFileSync(__dirname + '\\data.json', JSON.stringify(groceryList, null, 2), 'utf8');
+            logger.info(`Request body: ${JSON.stringify(parsedBody)}, successful`);
+            break;  // Exit the loop after deleting the item
+        }
+    }
+
+    if (!itemFound) {
+        logger.info(`Request body: ${JSON.stringify(parsedBody)}, failed`);
+    }
+}
+
+module.exports = {
+    groceryGet,
+    groceryPost,
+    groceryPut,
+    groceryDelete
+};
